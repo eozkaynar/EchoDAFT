@@ -1,0 +1,14 @@
+torch>=1.13
+torchvision
+numpy
+pandas
+opencv-python
+Pillow
+scikit-image
+SimpleITK
+imageio
+tqdm
+matplotlib
+scikit-learn
+click
+pydicom
