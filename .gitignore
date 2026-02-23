@@ -36,6 +36,7 @@ checkpoints/
 artifacts/
 outputs/
 results/
+sandbox/
 
 # =========================
 # IDE / Editors
