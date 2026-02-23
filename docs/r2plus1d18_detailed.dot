@@ -1,0 +1,25 @@
+
+digraph R2Plus1D18_Detailed {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  Input [label="Input\n(2,3,16,112,112)"];
+
+  # Stem
+  Stem1 [label="Stem\nConv3d (1x7x7, s=1,2,2)\nBN + ReLU"];
+  Stem2 [label="Stem\nConv3d (3x1x1)\nBN + ReLU\nOutput: (2,64,16,56,56)"];
+
+  # Layer template
+  L1_Block [label="Layer1 (x2 BasicBlock)\n\nBasicBlock:\n Conv2Plus1D\n  (1x3x3 spatial)\n  BN+ReLU\n  (3x1x1 temporal)\n BN\n + Residual\n ReLU\nOutput: (2,64,16,56,56)"];
+
+  L2_Block [label="Layer2 (x2 BasicBlock)\nFirst block has downsample\n\nBasicBlock:\n Conv2Plus1D (stride 2)\n BN+ReLU\n Conv2Plus1D\n BN\n + Downsample (1x1x1)\n ReLU\nOutput: (2,128,8,28,28)"];
+
+  L3_Block [label="Layer3 (x2 BasicBlock)\nFirst block has downsample\nOutput: (2,256,4,14,14)"];
+
+  L4_Block [label="Layer4 (x2 BasicBlock)\nFirst block has downsample\nOutput: (2,512,2,7,7)"];
+
+  AvgPool [label="AdaptiveAvgPool3d\n(1,1,1)\nOutput: (2,512,1,1,1)"];
+  FC [label="Linear (512 -> 400)\nOutput: (2,400)"];
+
+  Input -> Stem1 -> Stem2 -> L1_Block -> L2_Block -> L3_Block -> L4_Block -> AvgPool -> FC;
+}
