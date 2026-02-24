@@ -1,4 +1,5 @@
 import torch
+from torchvision.models.video import r2plus1d_18
 
 class Identity(torch.nn.Module):
     '''
@@ -96,4 +97,37 @@ class DAFTBlk(torch.nn.Module):
 
         x = self.BasicBlk1(visual)
         x = self.BasicBlk2(x)
+        x = self.relu(x)    
+        return x
+
+class R2Plus1D_DAFT(torch.nn.Module):
+    def __init__(self, tabular_dim, pretrained=True):
+        super(R2Plus1D_DAFT, self).__init__()
+
+        backbone = r2plus1d_18(pretrained=pretrained)
+
+        # Break backbone
+        self.stem = backbone.stem
+        self.layer1 = backbone.layer1
+        self.layer2 = backbone.layer2
+        self.layer3 = backbone.layer3
+
+        # Additional layers
+        self.layer4 = DAFTBlk(256, 512, tabular_dim)
+        
+        self.avgpool = torch.nn.AdaptiveAvgPool3d((1, 1, 1))
+
+        head = [torch.nn.Linear(512, 1)]
+        self.head = torch.nn.Sequential(*head)
+
+    def forward(self, visual, tabular):
+        x = self.stem(visual)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+
+        x = self.layer4(x, tabular)
+        x = self.avgpool(x)         # [N, 512, 1, 1, 1]
+        x = torch.flatten(x, 1)     # [N, 512]
+        x = self.head(x).squeeze(1) # [N]
         return x
