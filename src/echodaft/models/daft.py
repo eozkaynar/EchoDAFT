@@ -37,7 +37,7 @@ class BasicBlock2Plus1D(torch.nn.Module):
 
         self.conv1  = Conv2Plus1D(in_channels, out_channels, mid_channels=mid_channels, stride=stride, padding=padding)
         self.conv2  = Conv2Plus1D(out_channels, out_channels, mid_channels=mid_channels, stride=1, padding=padding)
-        self.relu   = torch.nn.ReLU(inplace=True)
+        self.relu   = torch.nn.ReLU(inplace=False)
         self.downsampleconv = None
         if downsample:
             self.downsampleconv = torch.nn.Sequential(
@@ -77,7 +77,7 @@ class DAFTBlk(torch.nn.Module):
         
         self.BasicBlk1 = BasicBlock2Plus1D(in_channels, out_channels, stride=2, padding=1, downsample=True)
         self.BasicBlk2 = BasicBlock2Plus1D(out_channels, out_channels, stride=1, padding=1, downsample=False)
-        self.relu      = torch.nn.ReLU(inplace=True)
+        self.relu      = torch.nn.ReLU(inplace=False)
 
 
     def forward(self, visual, tabular): 
@@ -92,6 +92,7 @@ class DAFTBlk(torch.nn.Module):
         v_scale, v_shift = torch.split(affine, self.split_size, dim=1)  # N, split_size each
         v_scale = v_scale.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)  # N, split_size, 1, 1, 1
         v_shift = v_shift.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)  # N, split_size, 1, 1, 1
+        
         visual = visual * v_scale + v_shift
 
 
@@ -119,6 +120,7 @@ class R2Plus1D_DAFT(torch.nn.Module):
 
         head = [torch.nn.Linear(512, 1)]
         self.head = torch.nn.Sequential(*head)
+        self.head[0].bias.data[0] = 0.556 # Initialize bias to mean EF value in dataset (55.6%)
 
     def forward(self, visual, tabular):
         x = self.stem(visual)
@@ -130,4 +132,5 @@ class R2Plus1D_DAFT(torch.nn.Module):
         x = self.avgpool(x)         # [N, 512, 1, 1, 1]
         x = torch.flatten(x, 1)     # [N, 512]
         x = self.head(x).squeeze(1) # [N]
+
         return x
