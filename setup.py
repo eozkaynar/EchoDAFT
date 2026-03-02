@@ -6,7 +6,8 @@ setup(
     description='',
     author='Eda Özkaynar',  
     author_email='ozkaynar@metu.edu.tr',  
-    packages=find_packages(),  # Tüm alt klasörleri dahil eder (içinde __init__.py varsa)
+    packages=find_packages("src"),  # Tüm alt klasörleri dahil eder (içinde __init__.py varsa)
+    package_dir={"": "src"},
     install_requires=[
         'torch>=1.13',
         'torchvision',
@@ -30,8 +31,8 @@ setup(
     python_requires='>=3.7',
     entry_points={
         "console_scripts": [
-            "echodaft=echodaft:main",
-            ],
+            "echodaft=echodaft.__main__:cli",
+        ],
     },
 
 )
